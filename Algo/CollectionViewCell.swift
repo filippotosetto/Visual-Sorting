@@ -16,13 +16,13 @@ class CollectionViewCell: UICollectionViewCell {
 
     @IBOutlet weak var containerView: ContainerView!
 
-    func setup(dataToSort: [Int], function: SortFunction) {
+    func setup(dataToSort: [Int], function: SortFunctionType) {
         self.data = dataToSort
 
         sorting = {
             self.numberOFSwaps.removeAll(keepCapacity: false)
             self.containerView.titleLabel.text = function.rawValue
-            SortFunction.getSortFunction(function, data: &self.data, swaps: &self.numberOFSwaps)
+            self.numberOFSwaps = execute(function, data: self.data)
         }
 
         sorting()

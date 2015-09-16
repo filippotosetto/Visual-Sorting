@@ -11,8 +11,6 @@ import UIKit
 
 class MainViewController: UIViewController {
     
-    @IBOutlet weak var menuView: UIView!
-    @IBOutlet weak var playPauseButton: PlayPauseButton!
     @IBOutlet weak var collectionView: UICollectionView!
     
     var data = [Int]()
@@ -21,7 +19,7 @@ class MainViewController: UIViewController {
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
 
-        restartAction(self)
+        restartAction()
     }
 
     override func didReceiveMemoryWarning() {
@@ -29,102 +27,46 @@ class MainViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    @IBAction func playPauseAction(sender: AnyObject) {
-        
-        
-        playPauseButton.switchButton()
-        
-        for cell in cellCollection {
-            cell.playPause()
-        }
-    }
     
-    @IBAction func restartAction(sender: AnyObject) {
-        
-        if self.playPauseButton.showPlay {
-            playPauseAction(self)
-        }
-        
+    func restartAction() {
         data.removeAll(keepCapacity: true)
         
         for _ in 1...10 {
             let n = Int(arc4random() % 9) + 1
             data.append(n)
         }
-        
+    
         cellCollection.removeAll(keepCapacity: false)
         collectionView.reloadData()
     }
-    
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject!) {
-        let vc = segue.destinationViewController as! AlgorithmSelectorViewController
-        vc.modalPresentationStyle = UIModalPresentationStyle.Popover
-        vc.popoverPresentationController!.delegate = self
-        vc.delegate = self
-    }
-    
-    override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator) {
-
-        let restore = { () -> Bool in
-            return coordinator.animateAlongsideTransition(nil, completion: { (context) -> Void in
-                    UIView.animateWithDuration(0.3,
-                        animations: { () -> Void in
-                            self.restartAction(self)
-
-                            self.collectionView.alpha = 1.0
-                    })
-                })
-        }
-        
-        
-        UIView.animateWithDuration(0.3,
-            animations: { () -> Void in
-              self.collectionView.alpha = 0.0
-        }) { (complete) -> Void in
-            restore()
-        }
-        
-        super.viewWillTransitionToSize(size, withTransitionCoordinator: coordinator)
-    }
 }
-
-
-// MARK: - UIPopoverPresentationControllerDelegate
-extension MainViewController: UIPopoverPresentationControllerDelegate {
-    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.None
-    }
-}
-
-// MARK: - AlgorithmSelectorDelegate
-extension MainViewController: AlgorithmSelectorDelegate {
-    func didSelectAlgorithm(functionName: SortFunction) {
-        restartAction(self)
-        
-//        sorting = {
-//            SortFunction.getSortFunction(functionName, data: &self.data, swaps: &self.numberOFSwaps)
-//        }
-    }
-}
-
 
 // MARK: - UICollectionViewDataSource
 extension MainViewController: UICollectionViewDataSource {
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 3
+        return 4
     }
     
+    func collectionView(collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, atIndexPath indexPath: NSIndexPath) -> UICollectionReusableView {
+        let cell = collectionView.dequeueReusableSupplementaryViewOfKind(UICollectionElementKindSectionFooter, withReuseIdentifier: "footerCell", forIndexPath: indexPath) as! CollectionFooter
+        cell.actionsDelegate = self
+        return cell
+    }
+
     // The cell that is returned must be retrieved from a call to -dequeueReusableCellWithReuseIdentifier:forIndexPath:
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        
         let cell: CollectionViewCell = collectionView.dequeueReusableCellWithReuseIdentifier("collectionViewCell", forIndexPath: indexPath) as! CollectionViewCell
         
         if indexPath.row == 0 {
-            cell.setup(data, function: SortFunction.QuickSort)
+            cell.setup(data, function: SortFunctionType.QuickSort)
         } else if indexPath.row == 1 {
-            cell.setup(data, function: SortFunction.HeapSort)
+            cell.setup(data, function: SortFunctionType.HeapSort)
+        } else if indexPath.row == 2 {
+            cell.setup(data, function: SortFunctionType.InsertionSort)
         } else {
-            cell.setup(data, function: SortFunction.InsertionSort)
+            cell.setup(data, function: SortFunctionType.MergeSort)
         }
         cellCollection.append(cell)
         
@@ -132,21 +74,19 @@ extension MainViewController: UICollectionViewDataSource {
     }
 }
 
-// MARK: - UICollectionViewFlowLayoutDelegate
-extension MainViewController: UICollectionViewDelegateFlowLayout {
-    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        
-        if( UIDevice.currentDevice().orientation == UIDeviceOrientation.LandscapeLeft ||
-            UIDevice.currentDevice().orientation == UIDeviceOrientation.LandscapeRight) {
-            let width = self.view.frame.size.width/2
-            return CGSize(width: width, height: width / 2 + 20)
-        } else {
-            let width = self.view.frame.size.width
-            return CGSize(width: width, height: width / 2 + 50)
+
+extension MainViewController: CollectionFooterDelegate {
+
+    func willToggleAction() {
+        for cell in cellCollection {
+            cell.playPause()
         }
     }
     
-    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAtIndex section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+    func willShuffleData() {
+        willToggleAction()
+        restartAction()
     }
+
 }
+

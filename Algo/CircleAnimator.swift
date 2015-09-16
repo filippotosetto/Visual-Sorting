@@ -18,6 +18,8 @@ class CircleAnimator: NSObject  {
     var delegate: CircleAnimatorDelegate?
     let fromCircle: CircleView, toCircle: CircleView
     
+    let animationDuration = 0.5
+    
     init(delegate: CircleAnimatorDelegate, fromCircle: CircleView, toCircle: CircleView) {
         self.fromCircle = fromCircle
         self.toCircle = toCircle
@@ -33,7 +35,7 @@ class CircleAnimator: NSObject  {
         
         let animation = CAKeyframeAnimation(keyPath: "position")
         animation.delegate = self
-        animation.duration  = 1.0
+        animation.duration  = animationDuration
         animation.timingFunctions = [CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)]
         
         animation.path = self.getBezier(fromCircleStartPosition, endPoint: toCircleStartPosition, up: true)
@@ -60,31 +62,7 @@ class CircleAnimator: NSObject  {
     }
 
     private func animateCirclePath(superlayer: CALayer, fromPosition: CGPoint, toPosition: CGPoint, up: Bool, color: CGColorRef) {
-        
-        
-//        let shapeLayer = CAShapeLayer()
-//        shapeLayer.fillColor = nil//UIColor.clearColor().CGColor//[[UIColor clearColor] CGColor];
-//        shapeLayer.strokeColor = UIColor.whiteColor().CGColor
-//        shapeLayer.backgroundColor = UIColor.clearColor().CGColor
-//        shapeLayer.strokeColor = color
-//        shapeLayer.lineWidth = 1
-//        shapeLayer.fillMode = kCAFillModeForwards
-//        shapeLayer.frame = superlayer.frame
-//        shapeLayer.path = self.getBezier(fromPosition, endPoint: toPosition, up: up)
-//        
-//        
-//        let gradientLayer = CAGradientLayer()
-//        
-//        gradientLayer.locations = [0.0, 1.0]
-//        
-//        let colorTop: AnyObject = UIColor(red: 255.0/255.0, green: 213.0/255.0, blue: 63.0/255.0, alpha: 1.0).CGColor
-//        let colorBottom: AnyObject = UIColor(red: 255.0/255.0, green: 198.0/255.0, blue: 5.0/255.0, alpha: 1.0).CGColor
-//        let arrayOfColors: [AnyObject] = [colorTop, colorBottom]
-//        gradientLayer.colors = arrayOfColors
-//
-//        gradientLayer.mask = shapeLayer
-//        superlayer.addSublayer(gradientLayer)
-        
+    
         let path = CAShapeLayer()
         path.fillColor = UIColor.clearColor().CGColor
         path.strokeColor = color
@@ -94,7 +72,7 @@ class CircleAnimator: NSObject  {
         superlayer.insertSublayer(path, atIndex: 0)
 
         let animation = CABasicAnimation(keyPath: "strokeEnd")
-        animation.duration = 1.0;
+        animation.duration = animationDuration
         animation.fromValue = 0.0
         animation.toValue = 1.0
         animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
