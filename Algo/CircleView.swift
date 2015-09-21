@@ -17,8 +17,6 @@ class CircleView: CAShapeLayer {
 
     var number: Int = 0
     
-    
-    
     var circleColor: CGColorRef {
         didSet {
             self.fillColor = circleColor

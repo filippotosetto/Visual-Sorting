@@ -43,6 +43,8 @@ enum SortFunctionType: String {
 
 
 
+//MARK:
+//MARK: Sort Protocol
 protocol SortProtocol {
     
     typealias DataType: Comparable
@@ -112,7 +114,6 @@ protocol InsertionSortProtocol { }
 extension SortProtocol where Self : InsertionSortProtocol {
     
     // REF: http://en.wikipedia.org/wiki/Insertion_sort
-    
     mutating func sortData() {
         if data.count > 1 {
             for i in 1..<data.count {
@@ -143,7 +144,6 @@ protocol HeapSortProtocol {}
 extension SortProtocol where Self : HeapSortProtocol {
     
     // REF: http://en.wikipedia.org/wiki/Heapsort
-    
     mutating func sortData() {
 
         // build max heap
@@ -185,7 +185,7 @@ extension SortProtocol where Self : HeapSortProtocol {
         var root = start
         
         // While root has at least one child
-        while (root * 2 + 1) <= end{
+        while (root * 2 + 1) <= end {
             let child = root * 2 + 1 // Left child
             var stepChild = root     // Child to swap with
             
@@ -202,7 +202,7 @@ extension SortProtocol where Self : HeapSortProtocol {
                 // Root holds the largest element, assume the heaps rooted children are valid
                 // We are done
                 return
-            } else{
+            } else {
                 steps += [(root, stepChild)]
                 
                 swap(&data[root],&data[stepChild])
@@ -229,56 +229,50 @@ extension SortProtocol where Self : MergeSortProtocol {
 
     // REF: http://en.wikipedia.org/wiki/In-place_algorithm
     mutating func sortData() {
-        if data.count > 0 {
-            mergeSort(&data, low: 0, high: data.count - 1, steps: &steps)
-        }
+        mergeSort(&data, low: 0, high: data.count - 1, steps: &steps)
     }
 
-    func mergeSort<T: Comparable>(inout data: [T], low: Int, high: Int, inout steps: Steps){
+    private func mergeSort<T: Comparable>(inout data: [T], low: Int, high: Int, inout steps: Steps){
 
-        if(high - low == 0){//only one element.
-            //no swap
-            return
-        }
-        else if(high - low == 1){//only two elements and swaps them
-            if(data[low] >= data[high]) {
-                swap(&data[low], &data[high])
-                steps += [(low, high)]
-                return
+        if data.count > 1 {
+            switch high - low {
+            case 0:
+                break
+            case 1:
+                if data[low] >= data[high] {
+                    swap(&data[low], &data[high])
+                    steps += [(low, high)]
+                }
+            default:
+                let midle = (low + high) / 2
+                
+                mergeSort(&data, low: low, high: midle, steps: &steps)//sort the left side
+                mergeSort(&data, low: midle+1, high: high, steps: &steps)//sort the right side
+                
+                merge(&data, low: low, high: high, mid: midle, steps: &steps)//combines them
             }
-        }
-        else{
-            let midle = (low + high)/2
-            
-            mergeSort(&data, low: low, high: midle, steps: &steps)//sort the left side
-            mergeSort(&data, low: midle+1, high: high, steps: &steps)//sort the right side
-            
-            merge(&data, low: low, high: high, mid: midle, steps: &steps)//combines them
         }
     }
 
     private func merge<T: Comparable>(inout data: [T], low: Int, high: Int, mid: Int, inout steps: Steps) {
         var i = low
         while(i <= mid){
-            if( data[i] > data[mid+1]){
+            if data[i] > data[mid+1] {
                 swap(&data[i], &data[mid+1])
                 steps += [(i, mid+1)]
                 push(&data, s: mid+1, e: high, steps: &steps)
             }
-            i++;
+            i++
         }
     }
     
     private func push<T: Comparable>(inout data: [T], s: Int, e: Int, inout steps: Steps){
-        for(var i = s; i<e ; i++){
-            if(data[i]>data[i+1]) {
-                swap(&data[i], &data[i+1])
-                steps += [(i, i+1)]
-            }
+        for i in s..<e where data[i] > data[i+1] {
+            swap(&data[i], &data[i+1])
+            steps += [(i, i+1)]
         }
     }
 }
-
 
 struct MergeSort : SortProtocol, MergeSortProtocol {
     var data: [Int]

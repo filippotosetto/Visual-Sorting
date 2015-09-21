@@ -74,10 +74,8 @@ class ContainerView: UIView {
     
     func cleanupLayers(){
         if (self.layer.sublayers != nil) {
-            for layer in self.layer.sublayers! {
-                if let _ = layer as? CAShapeLayer {
-                    layer.removeFromSuperlayer()
-                }
+            for layer in self.layer.sublayers! where layer is CAShapeLayer {
+                layer.removeFromSuperlayer()
             }
         }
         circles.removeAll(keepCapacity: true)
