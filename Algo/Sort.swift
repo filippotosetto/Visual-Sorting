@@ -8,30 +8,30 @@
 
 import Foundation
 
-typealias Swap = (Int, Int)
-typealias Swaps = [Swap]
+typealias Step = (Int, Int)
+typealias Steps = [Step]
 
-func execute(functionName: SortFunctionType, data: [Int]) -> Swaps {
+func execute(functionName: SortFunctionType, data: [Int]) -> Steps {
     
-    var swaps = Swaps()
+    var steps = Steps()
     
     switch functionName {
     case .QuickSort:
-        swaps = sortData(QuickSort(data: data, swaps: swaps))
+        steps = sortData(QuickSort(data: data, steps: steps))
     case .InsertionSort:
-        swaps = sortData(InsertionSort(data: data, swaps: swaps))
+        steps = sortData(InsertionSort(data: data, steps: steps))
     case .HeapSort:
-        swaps = sortData(HeapSort(data: data, swaps: swaps))
+        steps = sortData(HeapSort(data: data, steps: steps))
     case .MergeSort:
-        swaps = sortData(MergeSort(data: data, swaps: swaps))
+        steps = sortData(MergeSort(data: data, steps: steps))
     }
     
-    return swaps
+    return steps
 }
 
-func sortData<S: SortProtocol where S.DataType == Int>(var sortProtocol: S) -> Swaps {
+func sortData<S: SortProtocol where S.DataType == Int>(var sortProtocol: S) -> Steps {
     sortProtocol.sortData()
-    return sortProtocol.swaps
+    return sortProtocol.steps
 }
 
 enum SortFunctionType: String {
@@ -47,7 +47,7 @@ protocol SortProtocol {
     
     typealias DataType: Comparable
     var data: [DataType] { get set }
-    var swaps: Swaps { get set }
+    var steps: Steps { get set }
     
     mutating func sortData()
 }
@@ -61,10 +61,10 @@ extension SortProtocol where Self : QuickSortProtocol {
 
     // http://en.wikipedia.org/wiki/Quicksort
     mutating func sortData() {
-        quickSortInPlace(&data, start: 0, end: data.count - 1, swaps: &swaps)
+        quickSortInPlace(&data, start: 0, end: data.count - 1, steps: &steps)
     }
     
-    private func quickSortInPlace<T: Comparable>(inout data: [T], start: Int, end: Int, inout swaps: Swaps) {
+    private func quickSortInPlace<T: Comparable>(inout data: [T], start: Int, end: Int, inout steps: Steps) {
 
         if start >= end {
             return
@@ -85,7 +85,7 @@ extension SortProtocol where Self : QuickSortProtocol {
                 
                 if left <= right {
                     if left != right {
-                        swaps += [(left, right)]
+                        steps += [(left, right)]
                         swap(&data[left], &data[right])
                     }
                     left += 1
@@ -93,15 +93,15 @@ extension SortProtocol where Self : QuickSortProtocol {
                 }
             }
             
-            quickSortInPlace(&data, start: start, end: right, swaps: &swaps)
-            quickSortInPlace(&data, start: left, end: end, swaps: &swaps)
+            quickSortInPlace(&data, start: start, end: right, steps: &steps)
+            quickSortInPlace(&data, start: left, end: end, steps: &steps)
         }
     }
 }
 
 struct QuickSort : SortProtocol, QuickSortProtocol {
     var data: [Int]
-    var swaps: Swaps
+    var steps: Steps
 }
 
 
@@ -119,7 +119,7 @@ extension SortProtocol where Self : InsertionSortProtocol {
                 let x = data[i]
                 var j = i
                 while j > 0 && data[j-1] > x {
-                    swaps += [(j, j-1)]
+                    steps += [(j, j-1)]
                     
                     data[j] = data[j-1]
                     j--
@@ -132,7 +132,7 @@ extension SortProtocol where Self : InsertionSortProtocol {
 
 struct InsertionSort : SortProtocol, InsertionSortProtocol {
     var data: [Int]
-    var swaps: Swaps
+    var steps: Steps
 }
 
 
@@ -147,25 +147,25 @@ extension SortProtocol where Self : HeapSortProtocol {
     mutating func sortData() {
 
         // build max heap
-        heapify(&data, count: data.count, swaps: &swaps)
+        heapify(&data, count: data.count, steps: &steps)
         
         var end = data.count-1
         
         while end > 0{
-            swaps += [(0, end)]
+            steps += [(0, end)]
             
             swap(&data[0], &data[end])
             // heap size -1
             end--
             
             // restore heap property
-            siftDown(&data,start: 0,end: end, swaps: &swaps)
+            siftDown(&data,start: 0,end: end, steps: &steps)
         }
         
     }
     
     // put elements of array in heap order
-    private func heapify<T: Comparable>(inout data: [T], count: Int, inout swaps: Swaps){
+    private func heapify<T: Comparable>(inout data: [T], count: Int, inout steps: Steps){
         
         // start is assigned the index in 'a' of the last parent node
         // the last element in a 0-based array is at index count-1
@@ -174,39 +174,39 @@ extension SortProtocol where Self : HeapSortProtocol {
         
         while start >= 0{
             // sift down the node at index 'start' to the proper place such that all nodes below the start index are in heap order
-            siftDown(&data, start: start, end: count-1, swaps: &swaps)
+            siftDown(&data, start: start, end: count-1, steps: &steps)
             // Go to next partent node
             start--
         }
     }
     
     // Repair the heap whose root element is at index 'start', assuming the heaps rooted at its children are valid
-    private func siftDown<T: Comparable>(inout data: [T], start: Int, end: Int, inout swaps: Swaps){
+    private func siftDown<T: Comparable>(inout data: [T], start: Int, end: Int, inout steps: Steps){
         var root = start
         
         // While root has at least one child
         while (root * 2 + 1) <= end{
             let child = root * 2 + 1 // Left child
-            var swapChild = root     // Child to swap with
+            var stepChild = root     // Child to swap with
             
-            if data[swapChild] < data[child]{
-                swapChild = child
+            if data[stepChild] < data[child]{
+                stepChild = child
             }
             
             // If right child exists and is greater
-            if child+1 <= end && data[swapChild] < data[child+1]{
-                swapChild = child+1
+            if child+1 <= end && data[stepChild] < data[child+1]{
+                stepChild = child+1
             }
             
-            if swapChild == root{
+            if stepChild == root{
                 // Root holds the largest element, assume the heaps rooted children are valid
                 // We are done
                 return
             } else{
-                swaps += [(root, swapChild)]
+                steps += [(root, stepChild)]
                 
-                swap(&data[root],&data[swapChild])
-                root = swapChild // repeat to cont. sifting down the child
+                swap(&data[root],&data[stepChild])
+                root = stepChild // repeat to cont. sifting down the child
             }
             
         }
@@ -216,7 +216,7 @@ extension SortProtocol where Self : HeapSortProtocol {
 
 struct HeapSort : SortProtocol, HeapSortProtocol {
     var data: [Int]
-    var swaps: Swaps
+    var steps: Steps
 }
 
 
@@ -229,145 +229,60 @@ extension SortProtocol where Self : MergeSortProtocol {
 
     // REF: http://en.wikipedia.org/wiki/In-place_algorithm
     mutating func sortData() {
-        mergeSort(&data, low: 0, high: data.count-1, swaps: &swaps)
+        if data.count > 0 {
+            mergeSort(&data, low: 0, high: data.count - 1, steps: &steps)
+        }
     }
 
-    func mergeSort<T: Comparable>(inout data: [T], low: Int, high: Int, inout swaps: Swaps){
+    func mergeSort<T: Comparable>(inout data: [T], low: Int, high: Int, inout steps: Steps){
 
-        if (low < high) {
-            // find the midpoint of the current subarray
+        if(high - low == 0){//only one element.
+            //no swap
+            return
+        }
+        else if(high - low == 1){//only two elements and swaps them
+            if(data[low] >= data[high]) {
+                swap(&data[low], &data[high])
+                steps += [(low, high)]
+                return
+            }
+        }
+        else{
             let midle = (low + high)/2
             
-            // sort the first half
-            mergeSort(&data, low: low, high: midle, swaps: &swaps)
+            mergeSort(&data, low: low, high: midle, steps: &steps)//sort the left side
+            mergeSort(&data, low: midle+1, high: high, steps: &steps)//sort the right side
             
-            // sort the second half
-            mergeSort(&data, low: midle+1,high: high, swaps: &swaps)
-            
-            // merge the halves
-            merge(&data,low: low, high: high, swaps: &swaps)
+            merge(&data, low: low, high: high, mid: midle, steps: &steps)//combines them
         }
     }
 
-    private func merge<T: Comparable>(inout data: [T], low: Int, high: Int, inout swaps: Swaps) {
-        
-        var temp = data
-        
-        let mid = (low + high) / 2
-        var index1 = 0
-        var index2 = low
-        var index3 = mid + 1
-        
-        while (index2 <= mid && index3 <= high) {
-            if (data[index2] < data[index3]) {
-                temp[index1] = data[index2]
-                index1++
-                index2++
-                
-                if index1 != index2 && index1 < data.count && index2 < data.count {
-                    swaps += [(index1, index2)]
-                }
-            } else {
-                temp[index1] = data[index3]
-                index1++
-                index3++
-                
-                if index1 != index3 && index1 < data.count && index3 < data.count {
-                    swaps += [(index1, index3)]
-                }
+    private func merge<T: Comparable>(inout data: [T], low: Int, high: Int, mid: Int, inout steps: Steps) {
+        var i = low
+        while(i <= mid){
+            if( data[i] > data[mid+1]){
+                swap(&data[i], &data[mid+1])
+                steps += [(i, mid+1)]
+                push(&data, s: mid+1, e: high, steps: &steps)
+            }
+            i++;
+        }
+    }
+    
+    private func push<T: Comparable>(inout data: [T], s: Int, e: Int, inout steps: Steps){
+        for(var i = s; i<e ; i++){
+            if(data[i]>data[i+1]) {
+                swap(&data[i], &data[i+1])
+                steps += [(i, i+1)]
             }
         }
-                
-        while (index2 <= mid) {
-            temp[index1] = data[index2]
-            index1++
-            index2++
-            
-            if index1 != index2 && index1 < data.count && index2 < data.count {
-                swaps += [(index1, index2)]
-            }
-        }
-        
-        while (index3 <= high) {
-            temp[index1] = data[index3]
-            index1++
-            index3++
-            
-            if index1 != index3 && index1 < data.count && index3 < data.count {
-                swaps += [(index1, index3)]
-            }
-        }
-        
-        for (var i = low, j = 0; i <= high; i++, j++) {
-            data[i] = temp[j]
-            
-            if i != j {
-//                swaps += [(i, j)]
-            }
-        }
-        
-//        print(swaps)
-
-//        // create a new array; we'll copy this back once it's sorted
-//        int[] temp = copy(list);
-//        
-//        // Set the midpoint and the end points for each of the subarrays
-//        int mid = (low + high)/2;
-//        int index1 = 0;
-//        int index2 = low;
-//        int index3 = mid + 1;
-//        
-//        // Go through the two subarrays and compare, item by item,
-//        // placing the items in the proper order in the new array
-//        while (index2 <= mid && index3 <= high) {
-//            compCount++;
-//            if (list[index2] < list[index3]) {
-//                swapCount++;
-//                temp[index1] = list[index2];
-//                index1++;
-//                index2++;
-//                //print(temp);
-//            } else {
-//                temp[index1] = list[index3];
-//                swapCount++;
-//                index1++;
-//                index3++;
-//                //	print(temp);
-//            }
-//        }
-//        
-//        // if there are any items left over in the first subarray, add them to
-//        // the new array
-//        while (index2 <= mid) {
-//            temp[index1] = list[index2];
-//            swapCount++;
-//            index1++;
-//            index2++;
-//            //print(temp);
-//        }
-//        
-//        // if there are any items left over in the second subarray, add them
-//        // to the new array
-//        while (index3 <= high) {
-//            temp[index1] = list[index3];
-//            swapCount++;
-//            index1++;
-//            index3++;
-//            //print(temp);
-//        }
-//        
-//        // load temp array's contents back into original array
-//        for (int i=low, j=0; i<=high; i++, j++) {
-//            list[i] = temp[j];
-//            swapCount++;
-//        }
     }
 }
 
 
 struct MergeSort : SortProtocol, MergeSortProtocol {
     var data: [Int]
-    var swaps: Swaps
+    var steps: Steps
 }
 
 
